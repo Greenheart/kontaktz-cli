@@ -7,4 +7,4 @@ This is a school project created to learn how to use Python with the database Re
 
 ## Requirements:
 
-* [Redis](www.redis.io)
+* [Redis](http://www.redis.io)
