@@ -1,9 +1,20 @@
 import redis
 
-def help():
+def print_help():
     """Print available commands"""
     for cmd in commands:
         print("{0} - {1}".format(cmd, commands[cmd]))
+
+
+def list_contacts():
+    """Show information about your contacts"""
+    #use str.format() to format data like  --> NAME | PHONE with fixed width columns and centered text
+    pass
+
+
+def search():
+    """Find a contact by name or phone"""
+    pass
 
 
 def add():
@@ -26,6 +37,7 @@ def add():
     r.hmset("contacts:" + str(next_id), {"name": name, "phone": phone}) #insert new contact
     r.incr("next_id", 1)    #When operations is completed, increment next_id
 
+
 def remove():
     """Remove a contact from the db"""
     #Bad solution, find something better
@@ -39,9 +51,11 @@ def remove():
 
 
 commands = {
-    "help": help.__doc__,
+    "help": print_help.__doc__,
     "add": add.__doc__,
-    "remove": remove.__doc__
+    "remove": remove.__doc__,
+    "list": list_contacts.__doc__,
+    "search": search.__doc__
 }
 
 if __name__ == '__main__':
@@ -60,6 +74,9 @@ if __name__ == '__main__':
 
         running = True
         while running:
+            #TODO: rewrite this part to loop through the commands-dict,
+            #      use the keys as commands and values as callback-functions
+            #      also rename current commands-dict to command_descriptions
             cmd = input("\n~ ")
             if cmd == "help":
                 help()
@@ -67,6 +84,10 @@ if __name__ == '__main__':
                 add()
             elif cmd == "remove":
                 remove()
+            elif cmd == "list":
+                list_contacts()
+            elif cmd == "search":
+                search()
             else:
                 print("Unknown command. Type 'help' to list commands")
     else:
