@@ -8,20 +8,34 @@ def help():
 
 def add():
     """Add a contact to the db"""
+    next_id = r.get("next_id")
+    if next_id == None:    # if id doesn't exist yet, create it
+        print(next_id)
+        r.set("next_id", 0)
+        next_id = r.get("next_id")
+
+    # get user input with basic input-validation
     name = input("Contact Name: ")
-    phone = input("Phone:        ")
-    r.rpush("contacts.name", name)
-    r.rpush("contacts.phone", phone)
+    while len(name) < 1:
+        name = input("Contact Name: ")
+
+    phone = input("Phone: ")
+    while len(phone) < 1:
+        phone = input("Phone: ")
+
+    r.hmset("contacts:" + str(next_id), {"name": name, "phone": phone}) #insert new contact
+    r.incr("next_id", 1)    #When operations is completed, increment next_id
 
 def remove():
     """Remove a contact from the db"""
     #Bad solution, find something better
-    name = input("Name to remove: ")
-    phone = input("Phone to remove: ")
+    #name = input("Name to remove: ")
+    #phone = input("Phone to remove: ")
 
     #Add check to make sure that correct values are supplied
-    r.lrem("contacts.name", name)
-    r.lrem("contacts.phone", phone)
+    #TODO: change this to work with hashes
+    """r.lrem("contacts.name", name)
+    r.lrem("contacts.phone", phone)"""
 
 
 commands = {
