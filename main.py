@@ -79,7 +79,7 @@ if __name__ == '__main__':
 
     if r:
         print("\nRedis connected")
-        print("\n-=- CLI Contactz 0.1 -=-\nType 'help' to list commands")
+        print("\n-=- CLI Kontaktz 0.1 -=-\nType 'help' to list commands")
 
         running = True
         while running:
@@ -88,7 +88,7 @@ if __name__ == '__main__':
             #      also rename current commands-dict to command_descriptions
             cmd = input("\n~ ")
             if cmd == "help":
-                help()
+                print_help()
             elif cmd == "add":
                 add()
             elif cmd == "remove":
