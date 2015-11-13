@@ -8,8 +8,18 @@ def print_help():
 
 def list_contacts():
     """Show information about your contacts"""
-    #use str.format() to format data like  --> NAME | PHONE with fixed width columns and centered text
-    pass
+
+    if r.get("next_id"):    #if there are actual contacts
+    #TODO: improve the querying --> check if len(contacts) > 0, then loop through each contact
+        contacts = []
+
+        #get info about each contact and add it to the contacts-list
+        for i in range(0, int(r.get("next_id"))):
+            contacts.append(r.hgetall("contacts:" + str(i)))
+
+        #print info about each contact
+        for contact in contacts:
+            print("{0:<14}|{1:>12}".format(contact['name'], contact['phone']))
 
 
 def search():
@@ -21,7 +31,6 @@ def add():
     """Add a contact to the db"""
     next_id = r.get("next_id")
     if next_id == None:    # if id doesn't exist yet, create it
-        print(next_id)
         r.set("next_id", 0)
         next_id = r.get("next_id")
 
