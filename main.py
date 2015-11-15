@@ -1,7 +1,13 @@
 import redis
 from prettytable import PrettyTable, PLAIN_COLUMNS
 
-#TODO: add func that clear db
+def flush():
+    """Delete all data in the current db"""
+    if input("Are you sure? ('y' / 'n')\n~ ").lower() == "y":
+        if r.flushdb() == True:
+            print("\nSuccessfully flushed the db")
+    else:
+        print("\nOperation canceled")
 
 def print_help():
     """Print info about available commands"""
@@ -75,7 +81,8 @@ commands = {
     "add": add,
     "remove": remove,
     "list": list_contacts,
-    "find": find
+    "find": find,
+    "flush": flush
 }
 
 if __name__ == '__main__':
