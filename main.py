@@ -21,7 +21,6 @@ def list_contacts():
         #get info about each contact and add it to the table
         for uid in uids:
             user = r.hgetall("contacts:" + str(uid))
-            #print(user) #TODO: bug with users without any data.
             if user:
                 contacts.add_row([user['name'], user['phone']])
 
@@ -41,7 +40,6 @@ def add():
     if next_id == None:    # if id doesn't exist yet, create it
         r.set("next_id", 0)
         next_id = r.get("next_id")
-    r.sadd("user_ids", next_id) #keep user_ids in a set to make it easier to manage active users
 
     # get user input with basic input-validation
     name = ""
@@ -52,8 +50,10 @@ def add():
     while len(phone) < 1:
         phone = input("Phone: ")
 
-    r.hmset("contacts:" + str(next_id), {"name": name, "phone": phone}) #insert new contact
-    r.incr("next_id", 1)    #When operations is completed, increment next_id
+    success = r.hmset("contacts:" + str(next_id), {"name": name, "phone": phone}) #insert new contact
+    if success == True:
+        r.sadd("user_ids", next_id) #keep user_ids in a set to make it easier to manage active users
+        r.incr("next_id", 1)    #When operations is completed, increment next_id
 
 
 def remove():
