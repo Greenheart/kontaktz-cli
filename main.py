@@ -25,9 +25,8 @@ def list_contacts():
         print("No contacts found. Add new contacts with the 'add'-command")
 
 
-def search():
+def find():
     """Find a contact by name or phone"""
-    #TODO: rename to find
     pass
 
 
@@ -69,7 +68,7 @@ commands = {
     "add": add.__doc__,
     "remove": remove.__doc__,
     "list": list_contacts.__doc__,
-    "search": search.__doc__
+    "find": find.__doc__
 }
 
 if __name__ == '__main__':
@@ -100,8 +99,8 @@ if __name__ == '__main__':
                 remove()
             elif cmd == "list":
                 list_contacts()
-            elif cmd == "search":
-                search()
+            elif cmd == "find":
+                find()
             else:
                 print("Unknown command. Type 'help' to list commands")
     else:
