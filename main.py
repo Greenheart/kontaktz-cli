@@ -1,29 +1,33 @@
 import redis
 
+#TODO: add func that clear db
+
 def print_help():
     """Print available commands"""
     for cmd in commands:
-        print("{0} - {1}".format(cmd, commands[cmd]))
+        print("{0:<6} - {1}".format(cmd, commands[cmd]))
 
 
 def list_contacts():
     """Show information about your contacts"""
 
-    if r.get("next_id"):    #if there are actual contacts
-    #TODO: improve the querying --> check if len(contacts) > 0, then loop through each contact
+    if r.smembers("user_ids"):    #if there are actual contacts
         contacts = []
 
         #get info about each contact and add it to the contacts-list
-        for i in range(0, int(r.get("next_id"))):
-            contacts.append(r.hgetall("contacts:" + str(i)))
+        for uid in r.smembers("user_ids"):
+            contacts.append(r.hgetall("contacts:" + str(uid)))
 
         #print info about each contact
         for contact in contacts:
             print("{0:<14}|{1:>12}".format(contact['name'], contact['phone']))
+    else:
+        print("No contacts found. Add new contacts with the 'add'-command")
 
 
 def search():
     """Find a contact by name or phone"""
+    #TODO: rename to find
     pass
 
 
@@ -33,13 +37,14 @@ def add():
     if next_id == None:    # if id doesn't exist yet, create it
         r.set("next_id", 0)
         next_id = r.get("next_id")
+    r.sadd("user_ids", next_id) #keep user_ids in a set to make it easier to manage active users
 
     # get user input with basic input-validation
-    name = input("Contact Name: ")
+    name = ""
     while len(name) < 1:
         name = input("Contact Name: ")
 
-    phone = input("Phone: ")
+    phone = ""
     while len(phone) < 1:
         phone = input("Phone: ")
 

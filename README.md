@@ -1,5 +1,5 @@
 # kontaktz-cli
-### A python CLI to manage contacts. 
+### A python CLI to manage contacts.
 
 ---
 
@@ -8,3 +8,4 @@ This is a school project created to learn how to use Python with the database Re
 ## Requirements:
 
 * [Redis](http://www.redis.io)
+* [redis.py](https://github.com/andymccurdy/redis-py)
