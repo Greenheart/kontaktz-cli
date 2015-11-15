@@ -20,17 +20,14 @@ def list_contacts():
 
     uids = r.smembers("user_ids")
     if uids:    #if there are actual contacts
-        contacts = PrettyTable(["Name", "Phone"])
-        contacts.align["Name"] = "l"
-        contacts.set_style(PLAIN_COLUMNS)
-
+        contacts_found = []
         #get info about each contact and add it to the table
         for uid in uids:
-            user = r.hgetall("contacts:" + str(uid))
-            if user:
-                contacts.add_row([user['name'], user['phone']])
+            contact = r.hgetall("contacts:" + str(uid))
+            if contact:
+                contacts_found.append(contact)
 
-        print(contacts.get_string(sortby="Name"))
+        print_contacts(contacts_found)
     else:
         print("You've not added any contacts yet. Add new contacts with the 'add'-command")
 
@@ -51,33 +48,13 @@ def find():
             except ValueError:
                 print("\nPlease enter a number")
 
-        if search_type == 1:
-            name = ""
-            while len(name) < 1:
-                name = input("\nContact name: ")
-        else:
-            phone = ""
-            while len(phone) < 1:
-                phone = input("\nPhone: ")
-
-        contacts_found = []
-        #look through all active users if there's a match with the given name or phone
-        for uid in uids:
-            contact = r.hgetall("contacts:" + str(uid))
-            if contact:
-                if search_type == 1:
-                    if contact['name'] == name:
-                        contacts_found.append(contact)
-                elif search_type == 2:
-                    if contact['phone'] == phone:
-                        contacts_found.append(contact)
-
+        contacts_found = find_contact(search_type)
         if contacts_found:
             print("\n{0} contact(s) found".format(len(contacts_found)))
-            for contact in contacts_found:
-                print("{0} - {1}".format(contact['name'], contact['phone']))
+            print_contacts(contacts_found)
+
         else:
-            print("\nNo contacts found with the given name or phone\n")
+            print("\nNo contacts found with the given name or phone")
     else:
         print("You've not added any contacts yet. Add new contacts with the 'add'-command")
 
@@ -106,9 +83,7 @@ def add():
 
 def remove():
     """Remove a contact from the db"""
-    #Bad solution, find something better
-    #name = input("Name to remove: ")
-    #phone = input("Phone to remove: ")
+
 
     #Add check to make sure that correct values are supplied
     #TODO: change this to work with hashes
@@ -116,6 +91,57 @@ def remove():
     # 2. del contacts:uid to remove
     """r.lrem("contacts.name", name)
     r.lrem("contacts.phone", phone)"""
+
+def print_contacts(contacts_found):
+    if contacts_found:
+        contacts = PrettyTable(["Name", "Phone"])
+        contacts.align["Name"] = "l"
+        contacts.set_style(PLAIN_COLUMNS)
+
+        for contact in contacts_found:
+            contacts.add_row([contact['name'], contact['phone']])
+
+        print("\n", contacts.get_string(sortby="Name"))
+
+
+def find_contact(search_type, return_uid = False):
+    """Helper that finds a contact either by name or phone."""
+    uids = r.smembers("user_ids")
+    if uids:    #if there are actual users
+
+        name = ""
+        phone = ""
+
+        if search_type == 1:
+            while len(name) < 1:
+                name = input("\nContact name: ")
+        elif search_type == 2:
+            while len(phone) < 1:
+                phone = input("\nPhone: ")
+        else:
+            print("\nInvalid search_type")
+
+        if search_type == 1 or search_type == 2:
+            contacts_found = []
+            #look through all active users if there's a match with the given name or phone
+            for uid in uids:
+                contact = r.hgetall("contacts:" + str(uid))
+                if contact:
+                    if search_type == 1:
+                        if name.lower() in contact['name'].lower():
+                            if return_uid:
+                                contacts_found.append(uid)
+                            else:
+                                contacts_found.append(contact)
+                    elif search_type == 2:
+                        print(contact['phone'], phone)
+                        if phone in contact['phone']:
+                            if return_uid:
+                                contacts_found.append(uid)
+                            else:
+                                contacts_found.append(contact)
+
+            return contacts_found
 
 
 commands = {
