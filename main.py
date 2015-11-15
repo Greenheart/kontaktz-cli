@@ -1,4 +1,5 @@
 import redis
+from prettytable import PrettyTable, PLAIN_COLUMNS
 
 #TODO: add func that clear db
 
@@ -11,16 +12,18 @@ def print_help():
 def list_contacts():
     """Show information about your contacts"""
 
-    if r.smembers("user_ids"):    #if there are actual contacts
-        contacts = []
+    uids = r.smembers("user_ids")
+    if uids:    #if there are actual contacts
+        contacts = PrettyTable(["Name", "Phone"])
+        contacts.align["Name"] = "l"
+        contacts.set_style(PLAIN_COLUMNS)
 
-        #get info about each contact and add it to the contacts-list
-        for uid in r.smembers("user_ids"):
-            contacts.append(r.hgetall("contacts:" + str(uid)))
+        #get info about each contact and add it to the table
+        for uid in uids:
+            user = r.hgetall("contacts:" + str(uid))
+            contacts.add_row([user['name'], user['phone']])
 
-        #print info about each contact
-        for contact in contacts:
-            print("{0:<14}|{1:>12}".format(contact['name'], contact['phone']))
+        print(contacts.get_string(sortby="Name"))
     else:
         print("No contacts found. Add new contacts with the 'add'-command")
 
