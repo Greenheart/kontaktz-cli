@@ -4,7 +4,7 @@ from prettytable import PrettyTable, PLAIN_COLUMNS
 def flush():
     """Delete all data in the current db"""
     if r.smembers("user_ids"):
-        if input("Are you sure? ('y' / 'n')\n~ ").lower() == "y":
+        if input("Are you sure? ('y' / 'n')\n~ ").lower().lstrip().rstrip() == "y":
             if r.flushdb() == True:
                 print("\nSuccessfully flushed the db")
         else:
@@ -61,11 +61,11 @@ def add():
     # get user input with basic input-validation
     name = ""
     while len(name) < 1:
-        name = input("Contact Name: ")
+        name = input("Contact Name: ").lstrip().rstrip()
 
     phone = ""
     while len(phone) < 1:
-        phone = input("Phone: ")
+        phone = input("Phone: ").lstrip().rstrip()
 
     success = r.hmset("contacts:" + str(next_id), {"name": name, "phone": phone}) #insert new contact
     if success == True:
@@ -75,7 +75,6 @@ def add():
 
 def remove():
     """Remove a contact from the db"""
-
     uids = r.smembers("user_ids")
     if uids:    #if there are actual contacts
         search_type = get_search_type(find2remove = True)
@@ -85,10 +84,9 @@ def remove():
 
             for uid in contacts_found:
                 name = r.hgetall("contacts:" + uid)['name']
-                if input("Are you sure you want to delete '{0}'? ('y' / 'n')\n~ ".format(name)).lower() == "y":
+                if input("Are you sure you want to delete '{0}'? ('y' / 'n')\n~ ".format(name)).lower().lstrip().rstrip() == "y":
                     if r.delete("contacts:" + uid) == True and r.srem("user_ids", uid) == True:
                         print("\nSuccessfully removed '{0}' from the db".format(name))
-                        #TODO: Working! commit and you're done! :D
                 else:
                     print("\nOperation canceled\n")
 
@@ -151,10 +149,10 @@ def find_contacts(search_type, return_uid = False):
 
         if search_type == 1:
             while len(name) < 1:
-                name = input("\nContact name: ")
+                name = input("\nContact name: ").lstrip().rstrip()
         elif search_type == 2:
             while len(phone) < 1:
-                phone = input("\nPhone: ")
+                phone = input("\nPhone: ").lstrip().rstrip()
         else:
             print("\nInvalid search_type")
 
@@ -205,9 +203,9 @@ if __name__ == '__main__':
 
         running = True
         while running:
-            cmd = input("\n~ ") #TODO: strip() whitespace
-            if cmd in commands: #if input is a valid cmd --> run it
-                commands[cmd]()
+            cmd = input("\n~ ").lstrip().rstrip()
+            if cmd in commands: #if input is a valid cmd -->
+                commands[cmd]()     #run its callback stored in the commands-dict
             else:
                 print("Unknown command. Type 'help' to list commands")
     else:
