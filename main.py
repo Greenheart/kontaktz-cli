@@ -32,12 +32,54 @@ def list_contacts():
 
         print(contacts.get_string(sortby="Name"))
     else:
-        print("No contacts found. Add new contacts with the 'add'-command")
+        print("You've not added any contacts yet. Add new contacts with the 'add'-command")
 
 
 def find():
-    """Find a contact by name or phone"""
-    pass
+    """Find contacts by name or phone"""
+    uids = r.smembers("user_ids")
+    if uids:    #if there are actual contacts
+        search_type = ""
+        running = True
+        while running:
+            try:
+                search_type = int(input("How do you want to find the contact?\n'1': By name\n'2': By phone\n~ "))
+                if search_type == 1 or search_type == 2:
+                    running = False
+                else:
+                    print("\nPlease enter a number in range 1-2\n")
+            except ValueError:
+                print("\nPlease enter a number")
+
+        if search_type == 1:
+            name = ""
+            while len(name) < 1:
+                name = input("\nContact name: ")
+        else:
+            phone = ""
+            while len(phone) < 1:
+                phone = input("\nPhone: ")
+
+        contacts_found = []
+        #look through all active users if there's a match with the given name or phone
+        for uid in uids:
+            contact = r.hgetall("contacts:" + str(uid))
+            if contact:
+                if search_type == 1:
+                    if contact['name'] == name:
+                        contacts_found.append(contact)
+                elif search_type == 2:
+                    if contact['phone'] == phone:
+                        contacts_found.append(contact)
+
+        if contacts_found:
+            print("\n{0} contact(s) found".format(len(contacts_found)))
+            for contact in contacts_found:
+                print("{0} - {1}".format(contact['name'], contact['phone']))
+        else:
+            print("\nNo contacts found with the given name or phone\n")
+    else:
+        print("You've not added any contacts yet. Add new contacts with the 'add'-command")
 
 
 def add():
