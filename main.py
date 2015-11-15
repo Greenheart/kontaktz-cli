@@ -4,9 +4,9 @@ from prettytable import PrettyTable, PLAIN_COLUMNS
 #TODO: add func that clear db
 
 def print_help():
-    """Print available commands"""
+    """Print info about available commands"""
     for cmd in commands:
-        print("{0:<6} - {1}".format(cmd, commands[cmd]))
+        print("{0:<6} - {1}".format(cmd, commands[cmd].__doc__))
 
 
 def list_contacts():
@@ -21,7 +21,9 @@ def list_contacts():
         #get info about each contact and add it to the table
         for uid in uids:
             user = r.hgetall("contacts:" + str(uid))
-            contacts.add_row([user['name'], user['phone']])
+            #print(user) #TODO: bug with users without any data.
+            if user:
+                contacts.add_row([user['name'], user['phone']])
 
         print(contacts.get_string(sortby="Name"))
     else:
@@ -62,16 +64,18 @@ def remove():
 
     #Add check to make sure that correct values are supplied
     #TODO: change this to work with hashes
+    # 1. find uid of contact with name x or phone y
+    # 2. del contacts:uid to remove
     """r.lrem("contacts.name", name)
     r.lrem("contacts.phone", phone)"""
 
 
 commands = {
-    "help": print_help.__doc__,
-    "add": add.__doc__,
-    "remove": remove.__doc__,
-    "list": list_contacts.__doc__,
-    "find": find.__doc__
+    "help": print_help,
+    "add": add,
+    "remove": remove,
+    "list": list_contacts,
+    "find": find
 }
 
 if __name__ == '__main__':
@@ -90,20 +94,9 @@ if __name__ == '__main__':
 
         running = True
         while running:
-            #TODO: rewrite this part to loop through the commands-dict,
-            #      use the keys as commands and values as callback-functions
-            #      also rename current commands-dict to command_descriptions
             cmd = input("\n~ ")
-            if cmd == "help":
-                print_help()
-            elif cmd == "add":
-                add()
-            elif cmd == "remove":
-                remove()
-            elif cmd == "list":
-                list_contacts()
-            elif cmd == "find":
-                find()
+            if cmd in commands: #if input is a valid cmd --> run it
+                commands[cmd]()
             else:
                 print("Unknown command. Type 'help' to list commands")
     else:
