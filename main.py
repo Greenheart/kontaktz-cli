@@ -1,6 +1,11 @@
 import redis
 from prettytable import PrettyTable, PLAIN_COLUMNS
 
+__author__ = "Samuel Plumppu"
+__version__ = "1.0"
+__copyright__ = "Copyright 2015, Samuel Plumppu"
+__license__ = "MIT"
+
 def flush():
     """Delete all data in the current db"""
     if r.smembers("user_ids"):
@@ -199,7 +204,7 @@ if __name__ == '__main__':
 
     if r:
         print("\nRedis connected")
-        print("\n-=- CLI Kontaktz 0.1 -=-\nType 'help' to list commands")
+        print("\n-=- CLI Kontaktz {} -=-\nType 'help' to list commands".format(__version__))
 
         running = True
         while running:
