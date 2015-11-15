@@ -3,11 +3,14 @@ from prettytable import PrettyTable, PLAIN_COLUMNS
 
 def flush():
     """Delete all data in the current db"""
-    if input("Are you sure? ('y' / 'n')\n~ ").lower() == "y":
-        if r.flushdb() == True:
-            print("\nSuccessfully flushed the db")
+    if r.smembers("user_ids"):
+        if input("Are you sure? ('y' / 'n')\n~ ").lower() == "y":
+            if r.flushdb() == True:
+                print("\nSuccessfully flushed the db")
+        else:
+            print("\nOperation canceled")
     else:
-        print("\nOperation canceled")
+        print("Nothing to remove, db is already empty.")
 
 def print_help():
     """Print info about available commands"""
@@ -29,34 +32,23 @@ def list_contacts():
 
         print_contacts(contacts_found)
     else:
-        print("You've not added any contacts yet. Add new contacts with the 'add'-command")
+        print("No contacts to display. Add new contacts with the 'add'-command")
 
 
 def find():
     """Find contacts by name or phone"""
     uids = r.smembers("user_ids")
     if uids:    #if there are actual contacts
-        search_type = ""
-        running = True
-        while running:
-            try:
-                search_type = int(input("How do you want to find the contact?\n'1': By name\n'2': By phone\n~ "))
-                if search_type == 1 or search_type == 2:
-                    running = False
-                else:
-                    print("\nPlease enter a number in range 1-2\n")
-            except ValueError:
-                print("\nPlease enter a number")
 
-        contacts_found = find_contact(search_type)
+        search_type = get_search_type()
+        contacts_found = find_contacts(search_type)
         if contacts_found:
-            print("\n{0} contact(s) found".format(len(contacts_found)))
             print_contacts(contacts_found)
 
         else:
             print("\nNo contacts found with the given name or phone")
     else:
-        print("You've not added any contacts yet. Add new contacts with the 'add'-command")
+        print("No contacts to display. Add new contacts with the 'add'-command")
 
 
 def add():
@@ -84,19 +76,61 @@ def add():
 def remove():
     """Remove a contact from the db"""
 
+    uids = r.smembers("user_ids")
+    if uids:    #if there are actual contacts
+        search_type = get_search_type(find2remove = True)
+        contacts_found = find_contacts(search_type, return_uid = True)
+        if contacts_found:
+            print("\n{0} contact(s) found".format(len(contacts_found)))
 
-    #Add check to make sure that correct values are supplied
-    #TODO: change this to work with hashes
-    # 1. find uid of contact with name x or phone y
-    # 2. del contacts:uid to remove
-    """r.lrem("contacts.name", name)
-    r.lrem("contacts.phone", phone)"""
+            for uid in contacts_found:
+                name = r.hgetall("contacts:" + uid)['name']
+                if input("Are you sure you want to delete '{0}'? ('y' / 'n')\n~ ".format(name)).lower() == "y":
+                    if r.delete("contacts:" + uid) == True and r.srem("user_ids", uid) == True:
+                        print("\nSuccessfully removed '{0}' from the db".format(name))
+                        #TODO: Working! commit and you're done! :D
+                else:
+                    print("\nOperation canceled\n")
+
+        else:
+            print("\nNo contacts found with the given name or phone")
+    else:
+        print("No contacts to remove.")
+
+
+# ------------------------------- HELPERS --------------------------------------
+
+def get_search_type(find2remove = False):
+    """Helper that lets the user decide with search_type to use
+
+    The flag find2remove is used to show if the funciton is called from the remove-function.
+    This affect which message that appears in the prompt.
+    """
+    search_type = ""
+    while True:
+        try:
+            if find2remove:
+                msg = "How do you want to find the contact to remove?\n'1': By name\n'2': By phone\n~ "
+            else:
+                msg = "How do you want to find the contact?\n'1': By name\n'2': By phone\n~ "
+            search_type = int(input(msg))
+
+            if search_type == 1 or search_type == 2:
+                return search_type
+            else:
+                print("\nPlease enter a number in range 1-2\n")
+        except ValueError:
+            print("\nPlease enter a number in range 1-2\n")
+
 
 def print_contacts(contacts_found):
+    """Helper that takes a list of contacts and prints it in a nice table"""
     if contacts_found:
         contacts = PrettyTable(["Name", "Phone"])
         contacts.align["Name"] = "l"
         contacts.set_style(PLAIN_COLUMNS)
+
+        print("{0} contact(s) found".format(len(contacts_found)))
 
         for contact in contacts_found:
             contacts.add_row([contact['name'], contact['phone']])
@@ -104,8 +138,11 @@ def print_contacts(contacts_found):
         print("\n", contacts.get_string(sortby="Name"))
 
 
-def find_contact(search_type, return_uid = False):
-    """Helper that finds a contact either by name or phone."""
+def find_contacts(search_type, return_uid = False):
+    """Helper that finds a contact either by name or phone, depending on the 'search_type'-flag.
+
+    The 'return_uid'-flag decide if the found contacts should be returned as contact-objs or user_ids
+    """
     uids = r.smembers("user_ids")
     if uids:    #if there are actual users
 
@@ -134,7 +171,6 @@ def find_contact(search_type, return_uid = False):
                             else:
                                 contacts_found.append(contact)
                     elif search_type == 2:
-                        print(contact['phone'], phone)
                         if phone in contact['phone']:
                             if return_uid:
                                 contacts_found.append(uid)
@@ -169,7 +205,7 @@ if __name__ == '__main__':
 
         running = True
         while running:
-            cmd = input("\n~ ")
+            cmd = input("\n~ ") #TODO: strip() whitespace
             if cmd in commands: #if input is a valid cmd --> run it
                 commands[cmd]()
             else:
