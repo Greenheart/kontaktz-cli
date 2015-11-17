@@ -1,5 +1,6 @@
 import redis
 from prettytable import PrettyTable, PLAIN_COLUMNS
+from sys import exit
 
 __author__ = "Samuel Plumppu"
 __version__ = "1.0"
@@ -182,6 +183,10 @@ def find_contacts(search_type, return_uid = False):
 
             return contacts_found
 
+def exit_prompt():
+    """Exit the prompt"""
+    exit()
+
 
 commands = {
     "help": print_help,
@@ -189,7 +194,8 @@ commands = {
     "remove": remove,
     "list": list_contacts,
     "find": find,
-    "flush": flush
+    "flush": flush,
+    "exit": exit_prompt
 }
 
 if __name__ == '__main__':
